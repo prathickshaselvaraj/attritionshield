@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Analytics Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #F5F7FA;
+            --header-color: #1A73E8;
+            --accent-color: #0F9D58;
+            --warning-color: #EA4335;
+            --text-primary: #202124;
+            --card-bg: #FFFFFF;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--primary-bg);
+            min-height: 100vh;
+            color: var(--text-primary);
+        }
+        
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background: var(--card-bg);
+            padding: 2rem 1rem;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .logo h1 {
+            color: var(--header-color);
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            margin: 0.5rem 0;
+            border-radius: 8px;
+            color: #555;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-item:hover, .nav-item.active {
+            background: var(--header-color);
+            color: white;
+        }
+        
+        .nav-item i {
+            margin-right: 1rem;
+            font-size: 1.1rem;
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            background: var(--primary-bg);
+        }
+        
+        .header {
+            background: var(--card-bg);
+            padding: 1.5rem 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            color: var(--header-color);
+            font-size: 1.8rem;
+        }
+        
+        /* KPI Cards */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .kpi-card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid var(--header-color);
+            transition: transform 0.3s ease;
+        }
+        
+        .kpi-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .kpi-card.warning {
+            border-left-color: var(--warning-color);
+        }
+        
+        .kpi-card.success {
+            border-left-color: var(--accent-color);
+        }
+        
+        .kpi-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .kpi-title {
+            font-size: 0.9rem;
+            color: #666;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        
+        .kpi-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .kpi-icon.warning { background: var(--warning-color); }
+        .kpi-icon.success { background: var(--accent-color); }
+        .kpi-icon.primary { background: var(--header-color); }
+        
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+        
+        /* Charts */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .chart-container {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            grid-column: span 1;
+        }
+        
+        .chart-container.double {
+            grid-column: span 2;
+        }
+        
+        .chart-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+        
+        .chart-plot {
+            height: 400px;
+            width: 100%;
+        }
+        
+        /* Data Table */
+        .data-section {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .alert-badge {
+            background: var(--warning-color);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .risk-high {
+            color: var(--warning-color);
+            font-weight: 600;
+        }
+        
+        .priority-tag {
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .priority-high {
+            background: #ffebee;
+            color: var(--warning-color);
+        }
+
+        .insights-section {
+    background: var(--card-bg);
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.insights-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+}
+
+.insight-card {
+    padding: 1.5rem;
+    border-radius: 8px;
+    border-left: 4px solid #ddd;
+    background: #f8f9fa;
+}
+
+.insight-card.critical {
+    border-left-color: var(--warning-color);
+    background: #ffebee;
+}
+
+.insight-card.high {
+    border-left-color: #FF9800;
+    background: #fff3e0;
+}
+
+.insight-card.medium {
+    border-left-color: var(--accent-color);
+    background: #e8f5e8;
+}
+
+.insight-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.insight-card.critical .insight-icon { color: var(--warning-color); }
+.insight-card.high .insight-icon { color: #FF9800; }
+.insight-card.medium .insight-icon { color: var(--accent-color); }
+
+.insight-content h4 {
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.insight-content p {
+    color: #666;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.insight-action {
+    font-size: 0.8rem;
+    color: var(--header-color);
+    font-weight: 600;
+    padding-top: 0.5rem;
+    border-top: 1px solid #ddd;
+}
+        
+        @media (max-width: 768px) {
+            .dashboard-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+            }
+            
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-container.double {
+                grid-column: span 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <h1><i class="fas fa-chart-bar"></i> Employee Attrition Dashboard</h1>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <div class="kpi-title">Total Employees</div>
+                        <div class="kpi-icon primary">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                    <div class="kpi-value">{{ total_employees }}</div>
+                </div>
+
+                <div class="kpi-card warning">
+                    <div class="kpi-header">
+                        <div class="kpi-title">Attrition Rate</div>
+                        <div class="kpi-icon warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                    </div>
+                    <div class="kpi-value attrition-high">{{ "%.1f"|format(attrition_rate) }}%</div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <div class="kpi-title">Avg Monthly Income</div>
+                        <div class="kpi-icon primary">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                    </div>
+                    <div class="kpi-value">${{ "%.0f"|format(avg_income) }}</div>
+                </div>
+
+                <div class="kpi-card success">
+                    <div class="kpi-header">
+                        <div class="kpi-title">Overtime Rate</div>
+                        <div class="kpi-icon success">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                    </div>
+                    <div class="kpi-value">{{ "%.1f"|format(overtime_rate) }}%</div>
+                </div>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <div class="chart-title">Department Attrition Rates</div>
+                    <div id="dept-chart" class="chart-plot"></div>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-title">Overtime Impact</div>
+                    <div id="overtime-chart" class="chart-plot"></div>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-title">Income Comparison</div>
+                    <div id="income-chart" class="chart-plot"></div>
+                </div>
+            </div>
+
+            <!-- Add this after the charts grid and before the high-risk roles -->
+<div class="insights-section">
+    <div class="section-header">
+        <h3 class="section-title">
+            <i class="fas fa-lightbulb"></i> Actionable Insights & Recommendations
+        </h3>
+    </div>
+    
+    <div class="insights-grid">
+        <div class="insight-card critical">
+            <div class="insight-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="insight-content">
+                <h4>Compensation Crisis</h4>
+                <p>Employees who leave earn <strong>${{ "%.0f"|format(salary_gap) }} less</strong> than stayers</p>
+                <div class="insight-action">Conduct salary review for underpaid roles</div>
+            </div>
+        </div>
+
+        <div class="insight-card high">
+            <div class="insight-icon">
+                <i class="fas fa-briefcase"></i>
+            </div>
+            <div class="insight-content">
+                <h4>Overtime Burnout</h4>
+                <p><strong>{{ "%.1f"|format(overtime_impact['overtime_yes']) }}%</strong> of overtime workers leave vs {{ "%.1f"|format(overtime_impact['overtime_no']) }}%</p>
+                <div class="insight-action">Hire additional staff in high-workload departments</div>
+            </div>
+        </div>
+
+        <div class="insight-card medium">
+            <div class="insight-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="insight-content">
+                <h4>Department Focus</h4>
+                <p>Sales department has <strong>{{ dept_data[0].AttritionRate if dept_data else 0 }}%</strong> attrition rate</p>
+                <div class="insight-action">Implement department-specific retention programs</div>
+            </div>
+        </div>
+
+        <div class="insight-card medium">
+            <div class="insight-icon">
+                <i class="fas fa-user-graduate"></i>
+            </div>
+            <div class="insight-content">
+                <h4>Career Development</h4>
+                <p>Employees wait <strong>2.2 years</strong> on average for promotions</p>
+                <div class="insight-action">Create clear promotion paths and timelines</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+            <!-- High-Risk Roles -->
+            <div class="data-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <i class="fas fa-exclamation-triangle"></i> High-Risk Job Roles
+                        <span class="alert-badge">{{ role_attrition|length }} Roles</span>
+                    </div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Job Role</th>
+                            <th>Attrition Rate</th>
+                            <th>Median Income</th>
+                            <th>Priority</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for role in role_attrition %}
+                        <tr>
+                            <td><i class="fas fa-user-tie"></i> {{ role.JobRole }}</td>
+                            <td class="risk-high">{{ role['AttritionRate%'] }}%</td>
+                            <td>${{ "%.0f"|format(role.MedianIncome) }}</td>
+                            <td><span class="priority-tag priority-high">High Risk</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    try {
+        const deptChart = JSON.parse('{{ dept_chart | safe }}');
+        const overtimeChart = JSON.parse('{{ overtime_chart | safe }}');
+        const incomeChart = JSON.parse('{{ income_chart | safe }}');
+        
+        Plotly.newPlot('dept-chart', deptChart.data, deptChart.layout);
+        Plotly.newPlot('overtime-chart', overtimeChart.data, overtimeChart.layout);
+        Plotly.newPlot('income-chart', incomeChart.data, incomeChart.layout);
+        
+    } catch (error) {
+        console.error('Chart error:', error);
+    }
+</script>
+</body>
+</html>
