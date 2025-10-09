@@ -128,8 +128,7 @@ The **Flask-based dashboard** allows:
 ---
 
 ## Project Structure
-attritionsheld/
-│
+attritionshield/
 ├── app.py # Flask app
 ├── model/ # Pickle models
 │ ├── logistic_model.pkl
