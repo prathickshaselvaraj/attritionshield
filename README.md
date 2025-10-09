@@ -128,6 +128,7 @@ The **Flask-based dashboard** allows:
 ---
 
 ## Project Structure
+
 attritionshield/
 ├── app.py # Flask app
 ├── model/ # Pickle models
@@ -139,6 +140,7 @@ attritionshield/
 ├── data/ # Dataset files
 ├── src/ # Source code modules
 └── requirements.txt # Dependencies
+
 
 ---
 
