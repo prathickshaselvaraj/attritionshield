@@ -129,18 +129,7 @@ The **Flask-based dashboard** allows:
 
 ## Project Structure
 
-attritionshield/
-├── app.py # Flask app
-├── model/ # Pickle models
-│ ├── logistic_model.pkl
-│ └── random_forest.pkl
-├── static/ # CSS, JS, images
-├── templates/ # HTML templates
-├── notebooks/ # Jupyter notebooks
-├── data/ # Dataset files
-├── src/ # Source code modules
-└── requirements.txt # Dependencies
-
+![Project Structure](./results/project_structure.png)
 
 ---
 
